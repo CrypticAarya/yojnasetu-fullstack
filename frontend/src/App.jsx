@@ -13,10 +13,13 @@ const INITIAL_MESSAGES = [
   }
 ];
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5005';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function App() {
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('yojnasetu_messages');
+    return saved ? JSON.parse(saved) : INITIAL_MESSAGES;
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [schemes, setSchemes] = useState([]);
@@ -26,6 +29,24 @@ export default function App() {
     state: null,
     occupation: null
   });
+
+  useEffect(() => {
+    localStorage.setItem('yojnasetu_messages', JSON.stringify(messages));
+  }, [messages]);
+
+  const handleClearChat = () => {
+    if (window.confirm('Are you sure you want to clear the conversation?')) {
+      setMessages(INITIAL_MESSAGES);
+      setSchemes([]);
+      setUserData({
+        age: null,
+        income: null,
+        state: null,
+        occupation: null
+      });
+      localStorage.removeItem('yojnasetu_messages');
+    }
+  };
   const [selectedScheme, setSelectedScheme] = useState(null);
 
   const handleSendMessage = async (content) => {
@@ -113,6 +134,7 @@ export default function App() {
         schemes={schemes}
         userData={userData}
         onSelectScheme={(scheme) => setSelectedScheme(scheme)}
+        onClearChat={handleClearChat}
       />
 
       {/* Main Content Area */}

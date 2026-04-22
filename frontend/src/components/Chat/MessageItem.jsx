@@ -1,6 +1,9 @@
 import React from 'react';
 import { User, Bot, Copy, ThumbsUp, RotateCcw } from 'lucide-react';
 
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
 const MessageItem = ({ role, content }) => {
   const isUser = role === 'user';
 
@@ -23,9 +26,12 @@ const MessageItem = ({ role, content }) => {
               ? 'bg-violet-600 text-white rounded-tr-sm'
               : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 rounded-tl-sm'
           }`}
-          style={{ whiteSpace: 'pre-wrap' }}
         >
-          {content}
+          <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-gray-900/50 prose-pre:border prose-pre:border-gray-700/50">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {content}
+            </ReactMarkdown>
+          </div>
           
           {/* Decorative bubble tail */}
           <div className={`absolute top-0 w-2 h-2 ${isUser ? '-right-1 bg-violet-600' : '-left-1 bg-white dark:bg-gray-800 border-l border-t border-gray-100 dark:border-gray-700'} -z-10`} />

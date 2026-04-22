@@ -1,8 +1,8 @@
 import React from 'react';
-import { Sparkles, X, LayoutGrid, HelpCircle, Settings, Info } from 'lucide-react';
+import { Sparkles, X, LayoutGrid, HelpCircle, Settings, Info, RotateCcw } from 'lucide-react';
 import SchemeCard from './SchemeCard';
 
-const Sidebar = ({ isOpen, onClose, schemes = [], userData = {}, onSelectScheme }) => {
+const Sidebar = ({ isOpen, onClose, schemes = [], userData = {}, onSelectScheme, onClearChat }) => {
   const hasProfileData = Object.values(userData).some(val => val !== null && val !== undefined && val !== '');
 
   return (
@@ -125,6 +125,13 @@ const Sidebar = ({ isOpen, onClose, schemes = [], userData = {}, onSelectScheme 
               <button className="flex items-center gap-3 w-full p-2.5 hover:bg-white dark:hover:bg-gray-800 rounded-xl transition-all text-sm font-medium text-gray-600 dark:text-gray-400 group">
                 <HelpCircle className="w-4 h-4 group-hover:text-violet-600" />
                 <span>Documentation</span>
+              </button>
+              <button 
+                onClick={onClearChat}
+                className="flex items-center gap-3 w-full p-2.5 hover:bg-white dark:hover:bg-gray-800 rounded-xl transition-all text-sm font-medium text-gray-600 dark:text-gray-400 group"
+              >
+                <RotateCcw className="w-4 h-4 group-hover:text-red-500" />
+                <span>Clear Chat</span>
               </button>
               <button className="flex items-center gap-3 w-full p-2.5 hover:bg-white dark:hover:bg-gray-800 rounded-xl transition-all text-sm font-medium text-gray-600 dark:text-gray-400 group">
                 <Settings className="w-4 h-4 group-hover:text-violet-600" />

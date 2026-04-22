@@ -1,53 +1,86 @@
+require('dotenv').config(); // Load environment variables first
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config(); // Load environment variables
-const connectDB = require('./config/db'); // Import DB connection logic
-
-// Import routes
+const connectDB = require('./config/db');
 const mainRoutes = require('./routes/mainRoutes');
-
-// Connect to MongoDB
-connectDB();
 
 // Initialize Express app
 const app = express();
 
+/**
+ * 1. PORT CONFIGURATION (CRITICAL for Render)
+ */
+const PORT = process.env.PORT || 5000;
+
+/**
+ * 2. ENVIRONMENT VARIABLE CHECK & DEBUG LOGS
+ */
+console.log("🚀 STARTING SERVER...");
+console.log("ENV CHECK:", {
+    node_env: process.env.NODE_ENV,
+    port: process.env.PORT,
+    mongo_uri_exists: !!process.env.MONGO_URI,
+    jwt_secret_exists: !!process.env.JWT_SECRET,
+    frontend_url: process.env.FRONTEND_URL
+});
+
+/**
+ * 3. MIDDLEWARE & CORS
+ */
 const allowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
-const frontendUrl = process.env.FRONTEND_URL;
-if (frontendUrl) {
-    allowedOrigins.push(frontendUrl);
+if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
 }
 
-// Middleware
 app.use(cors({
     origin: function (origin, callback) {
-        // allow requests with no origin (like mobile apps or curl requests)
+        // Allow requests with no origin (like mobile apps or curl)
         if (!origin) return callback(null, true);
         
-        if (allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('http://localhost')) {
+        // In production, you might want to be stricter, but this allows local and configured frontend
+        if (allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('http://localhost') || process.env.NODE_ENV !== 'production') {
             callback(null, true);
         } else {
+            console.warn(`CORS Blocked: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json()); // Parse incoming JSON requests
 
-// Mount Routes
-// All main API endpoints will be handled by mainRoutes
+app.use(express.json());
+
+/**
+ * 4. ROUTES
+ */
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok', uptime: process.uptime() }));
 app.use('/', mainRoutes);
 
-// Define PORT
-const PORT = process.env.PORT || 5000;
+/**
+ * 5. SERVER STARTUP PATTERN (Production Ready)
+ */
+async function startServer() {
+    try {
+        // Attempt DB connection
+        const dbConnected = await connectDB();
+        
+        if (!dbConnected) {
+            console.warn("⚠️ Continuing startup without MongoDB connection. Some features may fail.");
+        }
 
-// Start Server locally if not in Vercel production
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
-    });
+        // Start listening
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`✅ Server is running on port ${PORT}`);
+            console.log(`🔗 Health Check: http://localhost:${PORT}/health`);
+        });
+    } catch (err) {
+        console.error("❌ CRITICAL: Failed to start server:", err);
+        process.exit(1);
+    }
 }
 
-// Export for Vercel Serverless Function
+startServer();
+
+// Export for testing or serverless environments
 module.exports = app;

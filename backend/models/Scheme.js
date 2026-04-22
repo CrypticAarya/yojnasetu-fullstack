@@ -6,6 +6,10 @@ const SchemeSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    category: {
+        type: String,
+        default: 'General'
+    },
     eligibility: {
         type: String,
         required: true
